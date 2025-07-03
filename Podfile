@@ -1,5 +1,5 @@
 # Uncomment the next line to define a global platform for your project
-platform :ios, '10.3'
+platform :ios, '13.0'
 
 target 'SignalRSwift' do
   # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
@@ -21,9 +21,10 @@ end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    if target.name == 'Mockit'
-      target.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '3.2'
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      if target.name == 'Mockit'
+        config.build_settings['SWIFT_VERSION'] = '5.0'
       end
     end
   end

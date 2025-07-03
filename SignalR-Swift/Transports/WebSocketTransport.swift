@@ -148,7 +148,7 @@ public class WebSocketTransport: HttpTransport, WebSocketDelegate {
 
     // MARK: - WebSocketDelegate
 
-    private func handleWebSocketError(client: WebSocket, error: Error?) {
+    private func handleWebSocketError(client: WebSocketClient, error: Error?) {
         if let startClosure = self.startClosure, let connectTimeoutOperation = self.connectTimeoutOperation {
             NSObject.cancelPreviousPerformRequests(withTarget: connectTimeoutOperation, selector: #selector(BlockOperation.start), object: nil)
 
@@ -162,7 +162,7 @@ public class WebSocketTransport: HttpTransport, WebSocketDelegate {
         }
     }
 
-    private func handleTextMessage(client: WebSocket, text: String) {
+    private func handleTextMessage(client: WebSocketClient, text: String) {
         var timedOut = false
         var disconnected = false
 
@@ -184,7 +184,7 @@ public class WebSocketTransport: HttpTransport, WebSocketDelegate {
         }
     }
     
-    public func didReceive(event: WebSocketEvent, client: WebSocketClient) {
+    public func didReceive(event: Starscream.WebSocketEvent, client: any Starscream.WebSocketClient) {
         switch event {
         case .connected:
             if let connection = self.connectionInfo?.connection, connection.changeState(oldState: .reconnecting, toState: .connected) {
@@ -212,7 +212,7 @@ public class WebSocketTransport: HttpTransport, WebSocketDelegate {
             break
         case .error(let error):
             handleWebSocketError(client: client, error: error)
-        case .peerClosed:
+        default:
             break
         }
     }

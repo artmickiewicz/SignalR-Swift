@@ -8,8 +8,7 @@
 
 import Foundation
 
-public class HubProxy: HubProxyProtocol {
-
+public class HubProxy: HubProxyProtocol, HubProxyAsyncProtocol, StateProviderProtocol {
     public var state = [String: Any]()
 
     private weak var connection: HubConnectionProtocol?
@@ -67,5 +66,13 @@ public class HubProxy: HubProxyProtocol {
                                     state: self.state)
         
         connection.send(object: hubData.toJSONString()!, completionHandler: completionHandler)
+    }
+    
+    func getState(key: String) async -> Any? {
+        return state[key]
+    }
+    
+    func setState(key: String, value: Any) async {
+        state[key] = value
     }
 }

@@ -16,4 +16,6 @@ protocol HubProxyProtocol {
     func invoke(method: String, withArgs args: [Any])
 
     func invoke(method: String, withArgs args: [Any], completionHandler: ((_ response: Any?, _ error: Error?) -> ())?)
+    
+    func invokeEvent(eventName: String, withArgs args: [Any])
 }

@@ -11,7 +11,7 @@ import Alamofire
 
 public class HubConnection: Connection, HubConnectionProtocol {
 
-    private var hubs = [String: HubProxy]()
+    private var hubs = [String: HubProxyAsyncProtocol & StateProviderProtocol]()
     private var callbacks = [String: HubConnectionHubResultClosure]()
     private var callbackId = UInt.min
     
@@ -34,6 +34,20 @@ public class HubConnection: Connection, HubConnectionProtocol {
         guard self.hubs[hubName] == nil else { return nil }
         
         let proxy = HubProxy(connection: self, hubName: hubName)
+        self.hubs[hubName] = proxy
+        return proxy
+    }
+    
+    public func createHubProxyActor(hubName: String) -> HubProxyActor? {
+        if self.state != .disconnected {
+            NSException.raise(.internalInconsistencyException, format: NSLocalizedString("Proxies cannot be added after the connection has been started.", comment: "proxy added after connection starts exception"), arguments: getVaList(["nil"]))
+        }
+        
+        let hubName = hubName.lowercased()
+        
+        guard self.hubs[hubName] == nil else { return nil }
+        
+        let proxy = HubProxyActor(connection: self, hubName: hubName)
         self.hubs[hubName] = proxy
         return proxy
     }
@@ -91,9 +105,13 @@ public class HubConnection: Connection, HubConnectionProtocol {
         let invocation = HubInvocation(jsonObject: dict)
         
         if let hubProxy = self.hubs[invocation.hub.lowercased()] {
-            invocation.state.forEach { (key, value) in hubProxy.state[key] = value }
+            Task {
+                for (key, value) in invocation.state {
+                    await hubProxy.setState(key: key, value: value)
+                }
             
-            hubProxy.invokeEvent(eventName: invocation.method, withArgs: invocation.args)
+                await hubProxy.invokeEvent(eventName: invocation.method, withArgs: invocation.args)
+            }
         }
 
         super.didReceiveData(data: data)
